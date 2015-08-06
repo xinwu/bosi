@@ -19,35 +19,8 @@ rhosp_register_passwd=%(rhosp_register_passwd)s
 
 
 controller() {
-    echo "Stop and disable metadata agent, dhcp agent, l3 agent"
-    sudo pcs resource disable neutron-metadata-agent-clone
-    sudo pcs resource disable neutron-metadata-agent
-    sudo pcs resource cleanup neutron-metadata-agent-clone
-    sudo pcs resource cleanup neutron-metadata-agent
-    sudo pcs resource delete neutron-metadata-agent-clone
-    sudo pcs resource delete neutron-metadata-agent
-
-    sudo pcs resource disable neutron-dhcp-agent-clone
-    sudo pcs resource disable neutron-dhcp-agent
-    sudo pcs resource cleanup neutron-dhcp-agent-clone
-    sudo pcs resource cleanup neutron-dhcp-agent
-    sudo pcs resource delete neutron-dhcp-agent-clone
-    sudo pcs resource delete neutron-dhcp-agent
-
-    sudo pcs resource disable neutron-l3-agent-clone
-    sudo pcs resource disable neutron-l3-agent
-    sudo pcs resource cleanup neutron-l3-agent-clone
-    sudo pcs resource cleanup neutron-l3-agent
-    sudo pcs resource delete neutron-l3-agent-clone
-    sudo pcs resource delete neutron-l3-agent
-
     # deploy bcf
     sudo puppet apply --modulepath /etc/puppet/modules %(dst_dir)s/%(hostname)s.pp
-
-    # restart keystone and httpd
-    sudo systemctl daemon-reload
-    sudo systemctl restart openstack-keystone
-    sudo systemctl restart httpd
 
     echo "Restart neutron-server"
     sudo rm -rf /var/lib/neutron/host_certs/*
@@ -55,20 +28,6 @@ controller() {
 }
 
 compute() {
-
-    sudo systemctl stop neutron-l3-agent
-    sudo systemctl disable neutron-l3-agent
-    sudo systemctl stop neutron-dhcp-agent
-    sudo systemctl disable neutron-dhcp-agent
-    sudo systemctl stop neutron-metadata-agent
-    sudo systemctl disable neutron-metadata-agent
-
-    if [[ $deploy_haproxy == true ]]; then
-        sudo groupadd nogroup
-        sudo yum install -y keepalived haproxy
-        sudo sysctl -w net.ipv4.ip_nonlocal_bind=1
-    fi
-
     # copy send_lldp to /bin
     sudo cp %(dst_dir)s/send_lldp /bin/
     sudo chmod 777 /bin/send_lldp
@@ -104,27 +63,6 @@ compute() {
     sudo ovs-vsctl --may-exist add-port %(br_bond)s %(bond)s
     sleep 5
     sudo systemctl restart send_lldp
-
-    # assign default gw
-    sudo bash /etc/rc.d/rc.local
-
-    if [[ $deploy_dhcp_agent == true ]]; then
-        echo 'Restart neutron-metadata-agent, neutron-dhcp-agent and neutron-l3-agent'
-        sudo systemctl enable neutron-metadata-agent
-        sudo systemctl restart neutron-metadata-agent
-        sudo systemctl enable neutron-dhcp-agent
-        sudo systemctl restart neutron-dhcp-agent
-    fi
-
-    if [[ $deploy_l3_agent == true ]]; then
-        sudo systemctl enable neutron-l3-agent
-        sudo systemctl restart neutron-l3-agent
-    fi
-
-    # restart nova compute on compute node
-    #echo 'Restart openstack-nova-compute'
-    #sudo systemctl restart openstack-nova-compute
-    #sudo systemctl enable openstack-nova-compute
 }
 
 

@@ -1,39 +1,6 @@
 
 $binpath = "/usr/local/bin/:/bin/:/usr/bin:/usr/sbin:/usr/local/sbin:/sbin"
 
-# edit rc.local for default gw
-file { "/etc/rc.local":
-    ensure  => file,
-    mode    => 0777,
-}->
-file_line { "remove touch /var/lock/subsys/local":
-    path    => '/etc/rc.local',
-    ensure  => absent,
-    line    => "touch /var/lock/subsys/local",
-}->
-file_line { "remove clear default gw":
-    path    => '/etc/rc.local',
-    ensure  => absent,
-    line    => "sudo ip route del default",
-}->
-file_line { "remove ip route add default":
-    path    => '/etc/rc.local',
-    ensure  => absent,
-    line    => "sudo ip route add default via %(default_gw)s",
-}->
-file_line { "touch /var/lock/subsys/local":
-    path    => '/etc/rc.local',
-    line    => "touch /var/lock/subsys/local",
-}->
-file_line { "clear default gw":
-    path    => '/etc/rc.local',
-    line    => "sudo ip route del default",
-}->
-file_line { "add default gw":
-    path    => '/etc/rc.local',
-    line    => "sudo ip route add default via %(default_gw)s",
-}
-
 # make sure known_hosts is cleaned up
 file { "/root/.ssh/known_hosts":
     ensure => absent,
@@ -94,33 +61,14 @@ ini_setting { "neutron.conf allow_automatic_l3agent_failover":
   value             => 'True',
   notify            => Service['neutron-server'],
 }
-
-# configure /etc/keystone/keystone.conf
-ini_setting { "keystone.conf notification driver":
+ini_setting { "neutron.conf l3_ha":
   ensure            => present,
-  path              => '/etc/keystone/keystone.conf',
+  path              => '/etc/neutron/neutron.conf',
   section           => 'DEFAULT',
   key_val_separator => '=',
-  setting           => 'notification_driver',
-  value             => 'messaging',
-  notify            => Service['openstack-keystone'],
-}
-ini_setting { "keystone.conf rabbit_hosts":
-  ensure            => present,
-  path              => '/etc/keystone/keystone.conf',
-  section           => 'DEFAULT',
-  key_val_separator => '=',
-  setting           => 'rabbit_hosts',
-  value             => '%(rabbit_hosts)s',
-  notify            => Service['openstack-keystone'],
-}
-ini_setting { "keystone.conf rabbit_host":
-  ensure            => absent,
-  path              => '/etc/keystone/keystone.conf',
-  section           => 'DEFAULT',
-  key_val_separator => '=',
-  setting           => 'rabbit_host',
-  notify            => Service['openstack-keystone'],
+  setting           => 'l3_ha',
+  value             => 'False',
+  notify            => Service['neutron-server'],
 }
 
 # config /etc/neutron/plugin.ini
@@ -145,16 +93,6 @@ ini_setting { "neutron plugin.ini enable_security_group":
 file { '/etc/neutron/dnsmasq-neutron.conf':
   ensure            => file,
   content           => 'dhcp-option-force=26,1400',
-}
-
-# disable l3 agent proxy metadata
-ini_setting { "l3 agent disable metadata proxy":
-  ensure            => present,
-  path              => '/etc/neutron/l3_agent.ini',
-  section           => 'DEFAULT',
-  key_val_separator => '=',
-  setting           => 'enable_metadata_proxy',
-  value             => 'False',
 }
 
 # config /etc/neutron/plugins/ml2/ml2_conf.ini 
@@ -266,26 +204,8 @@ file { '/etc/neutron/plugins/ml2':
   notify  => Service['neutron-server'],
 }
 
-# neutron-server, neutron-dhcp-agent and neutron-metadata-agent
 service { 'neutron-server':
   ensure     => running,
   enable     => true,
 }
-service { 'openstack-keystone':
-  ensure     => running,
-  enable     => true,
-}
-service { 'neutron-dhcp-agent':
-  ensure     => stopped,
-  enable     => false,
-}
-service { 'neutron-metadata-agent':
-  ensure  => stopped,
-  enable  => false,
-}
-service { 'neutron-l3-agent':
-  ensure  => stopped,
-  enable  => false,
-}
-
 
