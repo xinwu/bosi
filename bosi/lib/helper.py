@@ -1071,7 +1071,10 @@ class Helper(object):
         if nodes_yaml_config != None:
             for node_yaml_config in nodes_yaml_config:
                 # we always use ip address as the hostname
-                node_yaml_config['hostname'] = socket.gethostbyname(node_yaml_config['hostname'])
+                try:
+                    node_yaml_config['hostname'] = socket.gethostbyname(node_yaml_config['hostname'])
+                except Exception as e:
+                    continue
                 node_yaml_config_map[node_yaml_config['hostname']] = node_yaml_config
         if env.fuel_cluster_id == None and env.rhosp == False:
             return Helper.load_nodes_from_yaml(node_yaml_config_map, env)

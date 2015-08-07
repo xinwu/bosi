@@ -77,6 +77,10 @@ service { 'ivs':
     subscribe  => File['/etc/default/ivs'],
 }
 
+package { 'apport':
+    ensure  => 'running',
+}
+
 # load 8021q module on boot
 package { 'vlan':
     ensure  => latest,

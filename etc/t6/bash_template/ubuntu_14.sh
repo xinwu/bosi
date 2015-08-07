@@ -142,6 +142,7 @@ compute() {
                 apt-get install -y libnl-genl-3-200
                 apt-get -f install -y
                 dpkg --force-all -i %(dst_dir)s/%(ivs_debug_pkg)s
+                apt-get install -y apport
             fi
         else
             echo "ivs upgrade fails version validation"
