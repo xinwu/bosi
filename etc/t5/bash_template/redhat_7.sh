@@ -22,6 +22,44 @@ controller() {
     # deploy bcf
     sudo puppet apply --modulepath /etc/puppet/modules %(dst_dir)s/%(hostname)s.pp
 
+    if [[ $deploy_horizon_patch == true ]]; then
+        # enable lb
+        sed -i 's/'"'"'enable_lb'"'"': False/'"'"'enable_lb'"'"': True/g' %(horizon_base_dir)s/openstack_dashboard/local/local_settings.py
+
+        # chmod neutron config since bigswitch horizon patch reads neutron config as well
+        chmod -R a+r /usr/share/neutron
+        chmod -R a+x /usr/share/neutron
+        chmod -R a+r /etc/neutron
+        chmod -R a+x /etc/neutron
+
+        # deploy bcf horizon patch to controller node
+        if [[ -f %(dst_dir)s/%(horizon_patch)s ]]; then
+            chmod -R 777 '/etc/neutron/'
+            tar -xzf %(dst_dir)s/%(horizon_patch)s -C %(dst_dir)s
+            fs=('openstack_dashboard/dashboards/admin/dashboard.py' 'openstack_dashboard/dashboards/project/dashboard.py' 'openstack_dashboard/dashboards/admin/connections' 'openstack_dashboard/dashboards/project/connections' 'openstack_dashboard/dashboards/project/routers/extensions/routerrules/rulemanager.py' 'openstack_dashboard/dashboards/project/routers/extensions/routerrules/tabs.py')
+            for f in "${fs[@]}"
+            do
+                if [[ -f %(dst_dir)s/%(horizon_patch_dir)s/$f ]]; then
+                    yes | cp -rfp %(dst_dir)s/%(horizon_patch_dir)s/$f %(horizon_base_dir)s/$f
+                else
+                    mkdir -p %(horizon_base_dir)s/$f
+                    yes | cp -rfp %(dst_dir)s/%(horizon_patch_dir)s/$f/* %(horizon_base_dir)s/$f
+                fi
+            done
+            find "%(horizon_base_dir)s" -name "*.pyc" | xargs rm
+            find "%(horizon_base_dir)s" -name "*.pyo" | xargs rm
+
+            # patch neutron api.py to work around oslo bug
+            # https://bugs.launchpad.net/oslo-incubator/+bug/1328247
+            # https://review.openstack.org/#/c/130892/1/openstack/common/fileutils.py
+            neutron_api_py=$(find /usr -name api.py | grep neutron | grep db | grep -v plugins)
+            neutron_api_dir=$(dirname "${neutron_api_py}")
+            sed -i 's/from neutron.openstack.common import log as logging/import logging/g' $neutron_api_py
+            find $neutron_api_dir -name "*.pyc" | xargs rm
+            find $neutron_api_dir -name "*.pyo" | xargs rm
+        fi
+    fi
+
     echo "Restart neutron-server"
     sudo rm -rf /var/lib/neutron/host_certs/*
     sudo systemctl restart neutron-server
