@@ -29,11 +29,11 @@ IVS_TAR_PKG_DIRS = ["pkg/centos7-x86_64", "pkg/trusty-amd64"]
 DEPLOY_HORIZON_PATCH = True
 HORIZON_PATCH_URL = {
     'juno' : 'https://github.com/bigswitch/horizon/archive/juno-bcf-3.0-beta1.tar.gz',
-    'kilo' : 'https://github.com/bigswitch/horizon/archive/master.tar.gz',
+    'kilo' : 'https://github.com/bigswitch/horizon/archive/stable/kilo2.tar.gz',
 }
 HORIZON_PATCH_DIR = {
     'juno' : 'horizon-juno-bcf-3.0-beta1',
-    'kilo' : 'horizon-master',
+    'kilo' : 'horizon-stable-kilo2',
 }
 HORIZON_BASE_DIR = '/usr/share/openstack-dashboard'
 
