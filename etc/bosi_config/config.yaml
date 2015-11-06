@@ -1,43 +1,43 @@
 # configuration won't be overrided by any openstack installer
 
-# manditary, openstack release, supporting juno and kilo
+# mandatary, openstack release, supporting juno and kilo
 openstack_release: juno
-# manditary, skip all nodes if true
+# mandatary, skip all nodes if true
 default_skip: false
-# manditary, install bsnstacklib to all nodes if true
+# mandatary, install bsnstacklib to all nodes if true
 default_install_bsnstacklib: true
-# manditary, install ivs to all compute nodes if true
+# mandatary, install ivs to all compute nodes if true
 default_install_ivs: true
-# manditary, install dhcp agent to all compute nodes if true
+# mandatary, install dhcp agent to all compute nodes if true
 default_deploy_dhcp_agent: true
-# manditary, install l3 agent to all compute nodes if true
+# mandatary, install l3 agent to all compute nodes if true
 default_deploy_l3_agent: true
-# manditary for p+v fabric, the Switch Light VX tar file
+# mandatary for p+v fabric, the Switch Light VX tar file
 ivs_packages:
 - https://10.2.3.100/job/ivs-bsn-3.0.0/lastSuccessfulBuild/artifact/pkg/all/BCF-SL-VX-3.0.0-2015-08-14.tar.gz
-# manditary, bcf controller ip:port
+# mandatary, bcf controller ip:port
 bcf_controllers:
 - 10.212.1.231:8000
 - 10.212.1.230:8000
-# manditary, bcf controller admin user name
+# mandatary, bcf controller admin user name
 bcf_controller_user: admin
-# manditary, bcf controller admin user password
+# mandatary, bcf controller admin user password
 bcf_controller_passwd: adminadmin
-# manditary for fuel deployment, the tenant name for fuel networks
+# mandatary for fuel deployment, the tenant name for fuel networks
 bcf_openstack_management_tenant: os-mgmt
 
-# manditary if the openstack installer takes over pxe boot (fuel, rhosp)
+# mandatary if the openstack installer takes over pxe boot (fuel, rhosp)
 # It will be the default gw for all nodes if external gw is not specified.
 installer_pxe_interface_ip: 192.168.1.1
 
-# manditary if the openstack installer can list all nodes (fuel, rhosp).
+# mandatary if the openstack installer can list all nodes (fuel, rhosp).
 # bosi directly gets node list from openstack installer
 # and deploys bcf patch to all of them by default.
 # If user wants to deploy bcf patch only on specified
 # nodes, this field needs to be true
 deploy_to_specified_nodes_only: false
 
-# manditary for rhosp, red hat registration information
+# mandatary for rhosp, red hat registration information
 rhosp_automate_register: true
 rhosp_installer_management_interface: eno2
 rhosp_installer_pxe_interface: eno1
@@ -47,7 +47,7 @@ rhosp_register_passwd: bigswitch
 
 # All following configurations can be overrided by openstack installers
 
-# manditary, used to let bcf ml2 plugin differenciate different openstack clusters
+# mandatary, used to let bcf ml2 plugin differenciate different openstack clusters
 neutron_id: neutron
 # node os user name
 default_user: root
@@ -59,9 +59,9 @@ default_os: centos
 default_os_version: 7.0.1406
 # neutron physnet and vlan ranges
 network_vlan_ranges: physnet1:500:2000
-# manditary, can be controller or compute
+# mandatary, can be controller or compute
 default_role: compute
-# manditary, specify data plane uplinks
+# mandatary, specify data plane uplinks
 default_uplink_interfaces:
 - p2p1
 - p2p2
